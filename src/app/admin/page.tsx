@@ -274,16 +274,16 @@ export default function AdminPage() {
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-zinc-800">
-              <table class="w-full text-left text-xs text-zinc-300">
-                <thead class="bg-zinc-900 text-zinc-400 font-mono border-b border-zinc-800">
+              <table className="w-full text-left text-xs text-zinc-300">
+                <thead className="bg-zinc-900 text-zinc-400 font-mono border-b border-zinc-800">
                   <tr>
-                    <th class="p-3">User Email / Nama</th>
-                    <th class="p-3">Tier</th>
-                    <th class="p-3">Penggunaan Kuota</th>
-                    <th class="p-3">Aksi Admin (CRUD)</th>
+                    <th className="p-3">User Email / Nama</th>
+                    <th className="p-3">Tier</th>
+                    <th className="p-3">Penggunaan Kuota</th>
+                    <th className="p-3">Aksi Admin (CRUD)</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-zinc-800 bg-zinc-950 font-mono text-[11px]">
+                <tbody className="divide-y divide-zinc-800 bg-zinc-950 font-mono text-[11px]">
                   {filteredUsers.map((u) => {
                     const q = u.quota || {};
                     const isAdmin = u.email === "chilooks91@gmail.com";
