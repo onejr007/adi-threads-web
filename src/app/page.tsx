@@ -229,6 +229,27 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
+    if (!showAuthModal) return;
+    const tryRender = () => {
+      const w = (window as any).hcaptcha;
+      const el = document.querySelector(".h-captcha[data-sitekey]");
+      if (!w || !el || el.getAttribute("data-hc-rendered")) return;
+      try {
+        w.render(el, {
+          sitekey: el.getAttribute("data-sitekey"),
+          callback: (t: string) => setHcaptchaToken(t),
+          "expired-callback": () => setHcaptchaToken(""),
+        });
+        el.setAttribute("data-hc-rendered", "true");
+      } catch {}
+    };
+    tryRender();
+    const iv = setInterval(tryRender, 400);
+    const timeout = setTimeout(() => clearInterval(iv), 8000);
+    return () => { clearInterval(iv); clearTimeout(timeout); };
+  }, [showAuthModal]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       setLiveCounter((c) => c + Math.floor(Math.random() * 3));
     }, 3000);
