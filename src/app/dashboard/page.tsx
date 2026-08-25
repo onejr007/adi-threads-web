@@ -23,6 +23,63 @@ export default function DashboardPage() {
   const [byokToken, setByokToken] = useState("");
   const [byokUserId, setByokUserId] = useState("");
 
+  const [wsDailyCap, setWsDailyCap] = useState("");
+  const [wsIntervalMin, setWsIntervalMin] = useState("");
+  const [wsInfo, setWsInfo] = useState("Memuat pengaturan worker...");
+  const [isSavingWs, setIsSavingWs] = useState(false);
+
+  const loadWorkerSettings = () => {
+    fetch("/api/v1/threads/worker/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success") {
+          setWsDailyCap(String(data.daily_post_cap));
+          setWsIntervalMin(String(Math.round(data.post_interval_seconds / 60)));
+          setWsInfo(
+            `Aktif: ${data.daily_post_cap} post/hari • jeda ${data.post_interval_seconds}s • ±${data.posts_per_hour} post/jam (rolling 24 jam, kuota keras Meta Graph API 250/hari).`
+          );
+        }
+      })
+      .catch(() => setWsInfo("Gagal memuat pengaturan worker."));
+  };
+
+  useEffect(() => {
+    loadWorkerSettings();
+  }, []);
+
+  const saveWorkerSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cap = parseInt(wsDailyCap, 10);
+    const intervalMin = parseInt(wsIntervalMin, 10);
+    if (!cap || !intervalMin || cap < 1 || cap > 240 || intervalMin < 2 || intervalMin > 1440) {
+      alert("Isi limit harian (1-240) dan jeda posting (2-1440 menit) dengan nilai valid.");
+      return;
+    }
+    setIsSavingWs(true);
+    try {
+      const res = await fetch("/api/v1/threads/worker/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ daily_post_cap: cap, post_interval_seconds: intervalMin * 60 }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.status !== "success") {
+        alert("Gagal menyimpan: " + (data.detail || data.message || "Error tidak diketahui."));
+        return;
+      }
+      setWsDailyCap(String(data.daily_post_cap));
+      setWsIntervalMin(String(Math.round(data.post_interval_seconds / 60)));
+      setWsInfo(
+        `Aktif: ${data.daily_post_cap} post/hari • jeda ${data.post_interval_seconds}s • ±${data.posts_per_hour} post/jam (rolling 24 jam, kuota keras Meta Graph API 250/hari).`
+      );
+      alert("✅ Pengaturan worker tersimpan & langsung aktif tanpa restart.");
+    } catch (err) {
+      alert("Gagal menghubungi server.");
+    } finally {
+      setIsSavingWs(false);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("adi_saas_token");
     if (!token) {
@@ -336,6 +393,57 @@ export default function DashboardPage() {
             </button>
           </form>
         </div>
+
+        {/* WORKER 24/7 SETTINGS (ADMIN ONLY) */}
+        {currentUser.email === "chilooks91@gmail.com" && (
+          <form onSubmit={saveWorkerSettings} className="glass-card p-6 rounded-3xl border border-zinc-800 space-y-4 text-xs">
+            <h3 className="text-sm font-bold text-white flex items-center">
+              <i className="fa-solid fa-sliders text-amber-400 mr-2"></i>Pengaturan Worker 24/7 (TOS Guard)
+            </h3>
+            <p className="text-zinc-400 -mt-2">
+              Sesuaikan limit posting harian &amp; jeda antar posting engine otonom. Tersimpan persisten dan langsung aktif tanpa restart.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-zinc-400 mb-1">Limit Post / Hari (maks 240)</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={240}
+                  value={wsDailyCap}
+                  onChange={(e) => setWsDailyCap(e.target.value)}
+                  placeholder="100"
+                  className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-zinc-400 mb-1">Jeda Antar Post (menit)</label>
+                <input
+                  type="number"
+                  min={2}
+                  max={1440}
+                  value={wsIntervalMin}
+                  onChange={(e) => setWsIntervalMin(e.target.value)}
+                  placeholder="15"
+                  className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
+              <p className="font-mono-code text-[11px] text-zinc-500">{wsInfo}</p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSavingWs}
+              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 font-bold text-white shadow-md transition-all disabled:opacity-50"
+            >
+              {isSavingWs ? "Menyimpan..." : "Simpan Pengaturan Worker"}
+            </button>
+          </form>
+        )}
       </main>
     </div>
   );
