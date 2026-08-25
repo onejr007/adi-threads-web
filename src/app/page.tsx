@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import "./lp.css";
 
 const platforms = [
-  { name: "Threads", icon: "fa-brands fa-threads", color: "text-zinc-200", status: "live" },
-  { name: "X / Twitter", icon: "fa-brands fa-x-twitter", color: "text-zinc-200", status: "live" },
-  { name: "Instagram", icon: "fa-brands fa-instagram", color: "text-zinc-400", status: "dev" },
-  { name: "TikTok", icon: "fa-brands fa-tiktok", color: "text-zinc-400", status: "dev" },
-  { name: "Facebook", icon: "fa-brands fa-facebook", color: "text-zinc-400", status: "dev" },
-  { name: "LinkedIn", icon: "fa-brands fa-linkedin", color: "text-zinc-400", status: "dev" },
+  { name: "Threads", status: "live" },
+  { name: "X / Twitter", status: "live" },
+  { name: "Instagram", status: "dev" },
+  { name: "TikTok", status: "dev" },
+  { name: "Facebook", status: "dev" },
+  { name: "LinkedIn", status: "dev" },
 ];
 
 const demoPosts = [
@@ -54,10 +55,19 @@ const demoPosts = [
 ];
 
 const liveStats = [
-  { label: "Postingan terekam (24j)", value: 1247, suffix: "" },
+  { label: "Kirim terekam (24j)", value: 1247, suffix: "" },
   { label: "Akun aktif", value: 83, suffix: "" },
-  { label: "Engagement rate rata-rata", value: 4.2, suffix: "%" },
+  { label: "Engagement rata-rata", value: 4.2, suffix: "%" },
   { label: "Uptime engine", value: 99.97, suffix: "%" },
+];
+
+const features = [
+  { title: "Multi-platform agent", desc: "Satu agent mengelola Threads dan X dari satu dashboard; Instagram, TikTok, Facebook, dan LinkedIn menyusul.", meta: "threads · x" },
+  { title: "Pola posting manusiawi", desc: "Jeda acak antar kiriman, ritme mengikuti jam aktif audiens — bukan tembakan bot tiap jam tepat.", meta: "anti-spam" },
+  { title: "Kompresi prompt ADILANG", desc: "Prompt dipadatkan sebelum ke LLM teks; biaya API turun sampai 80% tanpa menurunkan kualitas konten.", meta: "hemat kuota" },
+  { title: "Cross-post otomatis", desc: "Satu konten disesuaikan bentuknya per platform lalu dikirim berurutan sesuai jadwal siar.", meta: "1 → banyak" },
+  { title: "Mesin engagement", desc: "Balas komentar, kejar thread relevan, rawat komunitas — dengan kuota harian yang terkontrol.", meta: "10x/hari gratis" },
+  { title: "Analitik terpadu", desc: "Kinerja tiap kiriman, pertumbuhan pengikut, dan riwayat versi konten dalam satu layar.", meta: "satu layar" },
 ];
 
 const demoTimes = ["06:12", "08:47", "11:03", "13:26", "16:58", "19:41"];
@@ -170,81 +180,54 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-950 text-white overflow-x-hidden selection:bg-emerald-500/30">
-      {/* BACKGROUND */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[10%] w-[600px] h-[600px] bg-emerald-500/15 rounded-full blur-[140px]" />
-        <div className="absolute top-[40%] right-[-5%] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[700px] h-[700px] bg-violet-500/8 rounded-full blur-[160px]" />
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)`,
-            backgroundSize: "32px 32px",
-          }}
-        />
-      </div>
-
+    <div className="lp-root">
       {/* TOASTS */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`animate-slide-in-right px-4 py-3 rounded-2xl border backdrop-blur-xl text-xs font-semibold shadow-2xl ${
-              t.type === "success"
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                : t.type === "warn"
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
-                : "bg-zinc-900/80 border-zinc-700/50 text-zinc-300"
-            }`}
+            className="lp-toast"
+            style={{
+              borderLeftColor:
+                t.type === "success" ? "#3f6212" : t.type === "warn" ? "#a16207" : "var(--accent)",
+            }}
           >
-            {t.type === "success" && <i className="fa-solid fa-check mr-2"></i>}
-            {t.type === "warn" && <i className="fa-solid fa-triangle-exclamation mr-2"></i>}
-            {t.type === "info" && <i className="fa-solid fa-circle-notch fa-spin mr-2"></i>}
             {t.text}
           </div>
         ))}
       </div>
 
-      {/* NAVBAR */}
-      <nav className="relative z-40 w-full border-b border-white/5 bg-zinc-950/60 backdrop-blur-xl sticky top-0">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-xl emerald-btn flex items-center justify-center text-zinc-950 text-lg font-black shadow-lg group-hover:scale-105 transition-transform">
-              <span className="relative z-10">⚡</span>
-            </div>
-            <div>
-              <span className="font-extrabold text-sm tracking-wide text-white block leading-tight">
-                ADI <span className="text-emerald-400">SOSMED</span>
-              </span>
-              <span className="text-[9px] font-mono text-zinc-500 tracking-widest block">
-                MULTI-PLATFORM ENGINE
-              </span>
-            </div>
+      {/* MASTHEAD */}
+      <nav className="sticky top-0 z-40 border-b lp-hairline" style={{ background: "var(--paper)" }}>
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
+          <Link href="/" className="lp-serif text-xl font-semibold tracking-tight whitespace-nowrap">
+            ADISosmed
           </Link>
-
-          <div className="flex items-center gap-3">
+          <span className="hidden md:block lp-kicker flex-1 text-center">
+            Mesin kehadiran sosial media · aio ekosistem adi
+          </span>
+          <div className="flex items-center gap-4 whitespace-nowrap">
             {currentUser ? (
-              <div className="flex items-center gap-2">
+              <>
                 {currentUser.email === "chilooks91@gmail.com" && (
-                  <Link href="/admin" className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs font-bold text-amber-400 hover:bg-amber-500/20 transition-all">
+                  <Link href="/admin" className="lp-mono text-xs uppercase tracking-[0.14em] lp-link" style={{ color: "var(--accent)" }}>
                     Admin
                   </Link>
                 )}
-                <Link href="/tickets" className="px-3 py-1.5 rounded-xl bg-zinc-900/50 border border-zinc-700/50 text-xs font-bold text-cyan-400 hover:bg-zinc-800/50 transition-all">
+                <Link href="/tickets" className="lp-mono text-xs uppercase tracking-[0.14em] lp-link">
                   Tiket
                 </Link>
-                <Link href="/dashboard" className="px-3.5 py-1.5 rounded-xl bg-zinc-900/50 border border-zinc-700/50 text-xs font-bold text-emerald-400 hover:bg-zinc-800/50 transition-all">
+                <Link href="/dashboard" className="lp-mono text-xs uppercase tracking-[0.14em] lp-link">
                   Dashboard
                 </Link>
-              </div>
+              </>
             ) : (
               <>
-                <button onClick={() => { setAuthTab("login"); setShowAuthModal(true); }} className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors">
+                <button onClick={() => { setAuthTab("login"); setShowAuthModal(true); }} className="lp-mono text-xs uppercase tracking-[0.14em] lp-link cursor-pointer">
                   Masuk
                 </button>
-                <button onClick={() => { setAuthTab("register"); setShowAuthModal(true); }} className="px-4 py-2 text-xs font-bold text-white emerald-btn rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all">
-                  Coba Gratis
+                <button onClick={() => { setAuthTab("register"); setShowAuthModal(true); }} className="lp-mono text-xs uppercase tracking-[0.14em] px-4 py-2 cursor-pointer" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+                  Daftar
                 </button>
               </>
             )}
@@ -253,358 +236,303 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO */}
-      <section className="relative px-6 pt-20 pb-16">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-mono mb-8">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Engine v3.0 • {liveCounter.toLocaleString()} postingan terkirim bulan ini
+      <section className="px-6 pt-20 pb-16">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 items-start">
+          <div className="lg:col-span-8">
+            <p className="lp-kicker mb-8">
+              Mesin siar harian <strong>· {liveCounter.toLocaleString()} kiriman bulan ini</strong>
+            </p>
+            <h1 className="lp-serif lp-headline">
+              Hadir setiap hari,
+              <br />
+              <em>tanpa buka aplikasinya.</em>
+            </h1>
+            <p className="lp-body text-lg leading-relaxed mt-8 max-w-xl" style={{ color: "var(--ink-soft)" }}>
+              ADISosmed menjaga akun sosial media Anda tetap hidup: posting
+              terjadwal, komentar yang dijawab, thread relevan yang dikejar —
+              dengan ritme yang terbaca manusiawi, bukan tembakan bot.
+            </p>
+            <div className="flex flex-wrap items-center gap-5 mt-10">
+              <button
+                onClick={() => {
+                  if (currentUser) window.location.href = "/dashboard";
+                  else { setAuthTab("register"); setShowAuthModal(true); }
+                }}
+                className="lp-btn"
+              >
+                Mulai gratis — 10x/hari
+              </button>
+              <button onClick={runDemo} disabled={demoRunning} className="lp-btn lp-btn-ghost">
+                {demoRunning ? "Siklus berjalan…" : "Jalankan siklusnya"}
+              </button>
+            </div>
+
+            {/* Platform: daftar mono, tanda † untuk yang masih dev */}
+            <p className="lp-mono text-xs mt-12 leading-relaxed" style={{ color: "var(--ink-faint)" }}>
+              {platforms.map((p, i) => (
+                <span key={p.name}>
+                  <span style={{ color: p.status === "live" ? "var(--ink)" : undefined }}>{p.name}</span>
+                  {p.status === "dev" && "†"}
+                  {i < platforms.length - 1 && "  ·  "}
+                </span>
+              ))}
+            </p>
+            <p className="lp-mono text-[10px] mt-1" style={{ color: "var(--ink-faint)" }}>
+              † sedang dibangun
+            </p>
           </div>
 
-          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6">
-            Sosial media yang
-            <br />
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-              berjalan sendiri
-            </span>
-          </h1>
+          {/* Panel jadwal siar */}
+          <aside className="lg:col-span-4">
+            <div className="lp-panel">
+              <div className="lp-panel-inner">
+                <p className="lp-kicker mb-5">Lembar siar hari ini</p>
+                <ol className="space-y-3">
+                  {demoPosts.slice(0, 5).map((post, i) => (
+                    <li key={post.mode} className="flex items-baseline gap-3">
+                      <span className="lp-mono text-xs" style={{ color: "var(--accent)" }}>{demoTimes[i]}</span>
+                      <span className="lp-body italic truncate">{post.label}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p className="lp-mono text-[11px] leading-relaxed mt-6 pt-4 border-t lp-hairline" style={{ color: "var(--ink-faint)" }}>
+                  Jeda antar kiriman diacak. Engine berhenti otomatis bila
+                  kuota harian habis — akun Anda tidak pernah terlihat seperti spam.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
 
-          <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-            ADI Sosmed mengotomatisasi posting, komentar, dan growth di semua platform sosial media yang kamu pakai.
-            Satu dashboard. Banyak platform. Tanpa ribbon.
+        {/* STATISTIK: baris kawat, bukan kartu */}
+        <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 mt-20 border-t border-b lp-hairline">
+          {liveStats.map((s, i) => (
+            <div key={i} className={`py-6 px-4 text-center ${i > 0 ? "sm:border-l lp-hairline" : ""}`}>
+              <div className="lp-serif text-3xl font-medium">
+                {i === 0 ? liveCounter.toLocaleString() : s.value}{s.suffix}
+              </div>
+              <div className="lp-kicker mt-2">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* DEMO */}
+      <section className="px-6 py-24" style={{ background: "var(--paper-deep)" }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-12">
+            <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight max-w-lg leading-tight">
+              Satu siklus, enam mode <em>kirim.</em>
+            </h2>
+            <div className="flex items-center gap-3">
+              <span
+                className="lp-tag lp-mono"
+                style={{ color: demoRunning ? "var(--accent)" : "var(--ink-faint)" }}
+              >
+                {demoRunning ? "● live" : "○ idle"}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Kiri: daftar mode */}
+            <div>
+              {demoPosts.map((post, i) => (
+                <div key={post.mode} className="flex items-baseline gap-4 py-3 border-t last:border-b lp-hairline">
+                  <span className="lp-mono text-xs shrink-0" style={{ color: demoStep > i ? "var(--accent)" : "var(--ink-faint)" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="min-w-0">
+                    <span className="lp-body italic">{post.label}</span>
+                    {demoStep > i && <span className="lp-mono text-[9px] uppercase tracking-widest ml-3" style={{ color: "var(--accent)" }}>selesai</span>}
+                  </div>
+                  <span className="hidden sm:block lp-toc-dots flex-1" />
+                  <span className="hidden lg:block lp-body text-xs truncate max-w-[220px]" style={{ color: "var(--ink-faint)" }}>
+                    {post.text.split(".")[0]}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Kanan: kliping feed */}
+            <div className="space-y-3">
+              {demoPosts.map((post, i) => {
+                const isActive = demoStep === i + 1;
+                const isDone = demoStep > i + 1;
+                return (
+                  <article
+                    key={post.mode}
+                    className={`lp-clip ${isActive ? "lp-clip-active" : isDone ? "lp-clip-done" : "lp-clip-idle"}`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="lp-mono text-[10px] tracking-wider" style={{ color: "var(--ink-faint)" }}>
+                        @adi_agent · {demoTimes[i]} WIB
+                      </span>
+                      <span className="ml-auto">
+                        {isActive && (
+                          <span className="lp-tag lp-mono animate-pulse" style={{ color: "var(--accent)" }}>mengirim</span>
+                        )}
+                        {isDone && (
+                          <span className="lp-tag lp-mono" style={{ color: "#3f6212" }}>terkirim</span>
+                        )}
+                      </span>
+                    </div>
+                    <p className="lp-body text-sm leading-relaxed">{post.text}</p>
+                    {post.link && (
+                      <a href={post.link} target="_blank" rel="noreferrer" className="lp-mono text-[11px] lp-link inline-block mt-2">
+                        {post.link}
+                      </a>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FITUR: baris editorial, tanpa ikon dekoratif */}
+      <section className="px-6 py-24">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight mb-12 max-w-xl leading-tight">
+            Yang dikerjakan mesin ini <em>setiap hari.</em>
+          </h2>
+          <div>
+            {features.map((f) => (
+              <div key={f.title} className="lp-row">
+                <span className="lp-mono text-xs" style={{ color: "var(--accent)" }}>—</span>
+                <h3 className="lp-serif italic text-xl">{f.title}</h3>
+                <p className="lp-row-desc lp-body leading-relaxed max-w-xl" style={{ color: "var(--ink-soft)" }}>
+                  {f.desc}
+                </p>
+                <span className="lp-mono text-[10px] uppercase tracking-[0.18em] whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
+                  {f.meta}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CARA KERJA */}
+      <section className="px-6 pb-24">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10 border-t pt-12 lp-hairline">
+          {[
+            { num: "01", title: "Hubungkan akun", desc: "OAuth sekali klik. Token disimpan terenkripsi end-to-end." },
+            { num: "02", title: "Atur strategi", desc: "Pilih niche, gaya bahasa, dan frekuensi siar harian." },
+            { num: "03", title: "Biarkan berjalan", desc: "Engine posting dan engaged 24/7; Anda cukup memantau." },
+          ].map((step) => (
+            <div key={step.num}>
+              <div className="lp-mono text-sm mb-3" style={{ color: "var(--accent)" }}>{step.num}</div>
+              <h3 className="lp-serif italic text-2xl mb-2">{step.title}</h3>
+              <p className="lp-body text-sm leading-relaxed" style={{ color: "var(--ink-soft)" }}>{step.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA: blok tinta inversi */}
+      <section className="px-6 pb-24">
+        <div className="max-w-4xl mx-auto text-center px-8 py-16" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+          <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight">
+            Akun yang jarang post, jarang diingat.
+          </h2>
+          <p className="lp-body mt-4" style={{ color: "#b9b19e" }}>
+            Gratis 10x posting dan 10x komentar setiap hari. Tanpa kartu kredit,
+            setup dua menit.
           </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
+          <div className="mt-8">
             <button
               onClick={() => {
                 if (currentUser) window.location.href = "/dashboard";
                 else { setAuthTab("register"); setShowAuthModal(true); }
               }}
-              className="group px-8 py-4 rounded-2xl emerald-btn text-sm font-bold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 transition-all inline-flex items-center"
+              className="lp-btn"
+              style={{ background: "var(--paper)", color: "var(--ink)", borderColor: "var(--paper)" }}
             >
-              Mulai Gratis — 10x/Hari
-              <i className="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-            </button>
-            <button onClick={runDemo} disabled={demoRunning} className="px-8 py-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50 text-sm font-bold text-zinc-300 hover:text-white hover:bg-zinc-800/50 hover:border-zinc-700/50 transition-all inline-flex items-center disabled:opacity-50">
-              <i className="fa-solid fa-play mr-2"></i>
-              {demoRunning ? "Menjalankan Demo..." : "Lihat Cara Kerja"}
+              Mulai sekarang — gratis
             </button>
           </div>
-
-          {/* PLATFORM ROW */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-20">
-            {platforms.map((p) => (
-              <div
-                key={p.name}
-                className={`px-4 py-2 rounded-2xl border text-xs font-bold flex items-center gap-2 ${
-                  p.status === "live"
-                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
-                    : "bg-zinc-900/30 border-zinc-800/30 text-zinc-500"
-                }`}
-              >
-                <i className={`${p.icon} text-sm`}></i>
-                {p.name}
-                {p.status === "dev" && <span className="text-[9px] font-mono opacity-60">(dev)</span>}
-              </div>
-            ))}
-          </div>
-
-          {/* STATS */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            {liveStats.map((s, i) => (
-              <div key={i} className="glass-panel rounded-2xl p-5 space-y-1">
-                <div className="text-2xl sm:text-3xl font-extrabold text-gradient">
-                  {i === 0 ? liveCounter.toLocaleString() : s.value}{s.suffix}
-                </div>
-                <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">{s.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* DEMO SECTION */}
-      <section className="relative px-6 py-24">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12 space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Lihat engine
-              <span className="text-gradient"> bekerja secara nyata</span>
-            </h2>
-            <p className="text-zinc-400 text-sm max-w-xl mx-auto">
-              Setiap siklus otomatis melewati 6 mode posting berbeda. Klik tombol di bawah untuk melihat simulasi langkah demi langkah.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left: mode selector */}
-            <div className="glass-panel rounded-3xl p-6 space-y-3">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Siklus Posting</h3>
-                <span className="text-[10px] font-mono text-zinc-600">6 modes</span>
-              </div>
-              {demoPosts.map((post, i) => (
-                <div
-                  key={post.mode}
-                  className={`flex items-start gap-3 p-3 rounded-2xl border transition-all ${
-                    demoStep > i
-                      ? "bg-emerald-500/10 border-emerald-500/20"
-                      : demoStep === i + 1
-                      ? "bg-cyan-500/10 border-cyan-500/20"
-                      : "bg-zinc-900/20 border-transparent opacity-60"
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
-                    demoStep > i ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-800 text-zinc-500"
-                  }`}>
-                    {demoStep > i ? <i className="fa-solid fa-check"></i> : String(i + 1).padStart(2, "0")}
-                  </div>
-                  <div className="space-y-1 min-w-0">
-                    <div className="text-xs font-bold text-white">{post.label}</div>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed line-clamp-2">{post.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Right: live feed simulation */}
-            <div className="glass-panel rounded-3xl p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Live Feed</h3>
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
-                    {demoRunning && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
-                    <span className={`relative inline-flex rounded-full h-2 w-2 ${demoRunning ? "bg-emerald-500" : "bg-zinc-700"}`}></span>
-                  </span>
-                  <span className="text-[10px] font-mono text-zinc-500">{demoRunning ? "LIVE" : "IDLE"}</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {demoPosts.map((post, i) => {
-                  const isActive = demoStep === i + 1;
-                  const isDone = demoStep > i + 1;
-                  return (
-                    <div
-                      key={post.mode}
-                      className={`p-4 rounded-2xl border transition-all duration-500 ${
-                        isActive
-                          ? "bg-zinc-900/80 border-cyan-500/30 animate-post-pop"
-                          : isDone
-                          ? "bg-zinc-900/40 border-emerald-500/10 opacity-70"
-                          : "bg-zinc-900/20 border-transparent opacity-40"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <i className="fa-brands fa-threads text-zinc-500 text-xs"></i>
-                        <span className="text-[10px] font-mono text-zinc-600">@adi_agent • {demoTimes[i]} WIB</span>
-                        {isActive && <span className="ml-auto text-[9px] font-bold text-cyan-400 animate-pulse">SENDING...</span>}
-                        {isDone && <span className="ml-auto text-[9px] font-bold text-emerald-400">SENT</span>}
-                      </div>
-                      <p className="text-xs text-zinc-300 leading-relaxed">{post.text}</p>
-                      {post.link && (
-                        <a href={post.link} target="_blank" rel="noreferrer" className="text-[10px] text-emerald-400 hover:text-emerald-300 mt-2 inline-block">
-                          {post.link} <i className="fa-solid fa-arrow-up-right-from-square ml-1"></i>
-                        </a>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section className="relative px-6 py-24">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Dibuat untuk tim yang
-              <span className="text-gradient"> tidak mau ribet</span>
-            </h2>
-            <p className="text-zinc-400 text-sm max-w-xl mx-auto">
-              Tidak perlu scheduler terpisah, tidak perlu analytics tool lain, tidak perlu copy-paste konten antar platform.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
-              { icon: "fa-robot", title: "Multi-Platform Agent", desc: "Satu agent mengelola Threads, X, Instagram, TikTok, Facebook, dan LinkedIn. Semua dari satu dashboard.", style: { card: "from-emerald-500/10 border-emerald-500/10", iconBox: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" } },
-              { icon: "fa-shield-halved", title: "Stealth Protocol", desc: "Pola posting seperti manusia. Rate limit dinamis, jitter acak, dan anti-detection engine bawaan.", style: { card: "from-cyan-500/10 border-cyan-500/10", iconBox: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400" } },
-              { icon: "fa-bolt", title: "Kompresi Token ADILANG", desc: "Prompt di-compress sebelum ke LLM. Hemat hingga 80% biaya API tanpa turun kualitas.", style: { card: "from-violet-500/10 border-violet-500/10", iconBox: "bg-violet-500/10 border-violet-500/20 text-violet-400" } },
-              { icon: "fa-tower-broadcast", title: "Auto Cross-Post", desc: "Satu konten, banyak platform. Threads ke X, Instagram ke Facebook, dan seterusnya.", style: { card: "from-amber-500/10 border-amber-500/10", iconBox: "bg-amber-500/10 border-amber-500/20 text-amber-400" } },
-              { icon: "fa-comments", title: "Engagement Engine", desc: "Auto-reply komentar, scavenge thread, dan bangun komunitas secara otonom.", style: { card: "from-rose-500/10 border-rose-500/10", iconBox: "bg-rose-500/10 border-rose-500/20 text-rose-400" } },
-              { icon: "fa-chart-line", title: "Analytics Terpadu", desc: "Semua metric engagement, follower growth, dan posting performance di satu tempat.", style: { card: "from-sky-500/10 border-sky-500/10", iconBox: "bg-sky-500/10 border-sky-500/20 text-sky-400" } },
-            ].map((f, i) => (
-              <div key={i} className={`group relative p-6 rounded-3xl bg-gradient-to-br ${f.style.card} to-transparent border backdrop-blur-xl hover:scale-[1.02] transition-all duration-300`}>
-                <div className="absolute inset-0 rounded-3xl animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative space-y-4">
-                  <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-lg ${f.style.iconBox}`}>
-                    <i className={`fa-solid ${f.icon}`}></i>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-extrabold text-white mb-1.5">{f.title}</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed">{f.desc}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="relative px-6 py-24">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16 space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Dari nol ke
-              <span className="text-gradient"> posting dalam 3 langkah</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { num: "01", title: "Hubungkan Akun", desc: "OAuth sekali klik ke setiap platform. Kami simpan token dengan enkripsi end-to-end." },
-              { num: "02", title: "Atur Strategi", desc: "Pilih niche, tone of voice, dan frekuensi. AI menyesuaikan konten dengan audiens kamu." },
-              { num: "03", title: "Biarkan Berjalan", desc: "Engine posting, berkomentar, dan engaged 24/7. Kamu cuma pantau dari dashboard." },
-            ].map((step, i) => (
-              <div key={i} className="relative">
-                <div className="glass-panel rounded-3xl p-8 h-full hover:border-white/10 transition-all relative overflow-hidden">
-                  <div className="absolute top-0 right-0 text-8xl font-black text-white/[0.02] leading-none select-none">{step.num}</div>
-                  <div className="relative space-y-4">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-black text-sm">
-                      {step.num}
-                    </div>
-                    <h3 className="text-lg font-extrabold text-white">{step.title}</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed">{step.desc}</p>
-                  </div>
-                </div>
-                {i < 2 && (
-                  <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
-                    <div className="w-6 h-6 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center">
-                      <i className="fa-solid fa-chevron-right text-zinc-500 text-[10px]"></i>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="relative px-6 py-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative glass-panel rounded-[2rem] p-12 sm:p-16 text-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-cyan-500/10" />
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-emerald-500/15 rounded-full blur-[100px]" />
-            <div className="relative space-y-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl emerald-btn text-zinc-950 text-2xl font-black shadow-lg mx-auto">
-                ⚡
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                Siap otomatiskan semua akun sosial media kamu?
-              </h2>
-              <p className="text-zinc-400 text-sm max-w-lg mx-auto">
-                Bergabung dengan pengguna yang sudah menggunakan ADI Sosmed. Gratis 10x posting per hari, tanpa batas platform.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-                <button
-                  onClick={() => {
-                    if (currentUser) window.location.href = "/dashboard";
-                    else { setAuthTab("register"); setShowAuthModal(true); }
-                  }}
-                  className="group px-8 py-4 rounded-2xl emerald-btn text-sm font-bold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 transition-all inline-flex items-center"
-                >
-                  Mulai Sekarang — Gratis
-                  <i className="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                </button>
-              </div>
-              <p className="text-[10px] text-zinc-600 font-mono">
-                Tidak perlu kartu kredit • Setup 2 menit • 10x posting gratisan setiap hari
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="relative border-t border-white/5 px-6 py-12">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg emerald-btn flex items-center justify-center font-black text-zinc-950 text-sm">⚡</div>
-            <span className="text-xs font-bold text-zinc-500">ADI SOSMED © 2025 — Multi-Platform Social Engine</span>
-          </div>
+      {/* COLOPHON */}
+      <footer className="border-t lp-hairline px-6 py-8">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="lp-mono text-[11px] uppercase tracking-[0.16em]" style={{ color: "var(--ink-faint)" }}>
+            ADISosmed · bagian dari ekosistem ADI
+          </p>
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Dashboard</Link>
-            <Link href="/tickets" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Tiket</Link>
-            <a href="https://myadi.my.id" target="_blank" rel="noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">ADI Ecosystem</a>
+            <Link href="/dashboard" className="lp-mono text-[11px] uppercase tracking-[0.16em] lp-link">Dashboard</Link>
+            <Link href="/tickets" className="lp-mono text-[11px] uppercase tracking-[0.16em] lp-link">Tiket</Link>
+            <a href="https://myadi.my.id" target="_blank" rel="noreferrer" className="lp-mono text-[11px] uppercase tracking-[0.16em] lp-link">Ekosistem ADI</a>
           </div>
+          <p className="lp-mono text-[11px] uppercase tracking-[0.16em]" style={{ color: "var(--ink-faint)" }}>
+            © 2026 Bagas Adi Pratama S,Kom.
+          </p>
         </div>
       </footer>
 
       {/* AUTH MODAL */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-md p-4">
-          <div className="glass-panel w-full max-w-md p-6 rounded-3xl border border-white/10 space-y-5 relative">
-            <button onClick={() => setShowAuthModal(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors">
-              <i className="fa-solid fa-xmark text-lg"></i>
+        <div className="fixed inset-0 z-50 flex items-center justify-center lp-overlay p-4">
+          <div className="w-full max-w-md relative" style={{ background: "var(--paper-deep)", border: "1px solid var(--ink)", boxShadow: "8px 8px 0 0 rgba(33,29,21,0.25)" }}>
+            <button onClick={() => setShowAuthModal(false)} aria-label="Tutup" className="absolute top-3 right-4 text-xl leading-none cursor-pointer" style={{ color: "var(--ink-faint)" }}>
+              ×
             </button>
+            <div className="m-1.5 p-7 space-y-6" style={{ border: "1px solid var(--line)" }}>
+              <div className="flex gap-6 border-b lp-hairline pb-3">
+                <button onClick={() => setAuthTab("register")} className={`lp-body italic text-base cursor-pointer ${authTab === "register" ? "" : ""}`} style={authTab === "register" ? { color: "var(--accent)", textDecoration: "underline", textDecorationColor: "var(--accent)", textUnderlineOffset: 5 } : { color: "var(--ink-faint)" }}>
+                  Daftar baru
+                </button>
+                <button onClick={() => setAuthTab("login")} className="lp-body italic text-base cursor-pointer" style={authTab === "login" ? { color: "var(--accent)", textDecoration: "underline", textDecorationColor: "var(--accent)", textUnderlineOffset: 5 } : { color: "var(--ink-faint)" }}>
+                  Masuk sesi
+                </button>
+              </div>
 
-            <div className="flex border-b border-white/5 space-x-4 text-xs font-bold">
-              <button onClick={() => setAuthTab("register")} className={`pb-2.5 transition-colors ${authTab === "register" ? "text-emerald-400 border-b-2 border-emerald-400" : "text-zinc-500 hover:text-zinc-300"}`}>
-                Daftar Baru
-              </button>
-              <button onClick={() => setAuthTab("login")} className={`pb-2.5 transition-colors ${authTab === "login" ? "text-emerald-400 border-b-2 border-emerald-400" : "text-zinc-500 hover:text-zinc-300"}`}>
-                Masuk Sesi
-              </button>
-            </div>
+              <div className="space-y-2.5">
+                <button onClick={() => triggerOAuth("google")} className="lp-btn lp-btn-ghost lp-btn-plain w-full cursor-pointer">
+                  Lanjutkan dengan Google
+                </button>
+                <button onClick={() => triggerOAuth("github")} className="lp-btn lp-btn-ghost lp-btn-plain w-full cursor-pointer">
+                  Lanjutkan dengan GitHub
+                </button>
+              </div>
 
-            <div className="space-y-2.5">
-              <button onClick={() => triggerOAuth("google")} className="w-full py-3 rounded-xl bg-zinc-900/50 border border-zinc-700/50 hover:bg-zinc-800/50 text-xs font-bold text-white flex items-center justify-center gap-2 transition-all">
-                <i className="fa-brands fa-google text-rose-400"></i>Lanjutkan dengan Google
-              </button>
-              <button onClick={() => triggerOAuth("github")} className="w-full py-3 rounded-xl bg-zinc-900/50 border border-zinc-700/50 hover:bg-zinc-800/50 text-xs font-bold text-white flex items-center justify-center gap-2 transition-all">
-                <i className="fa-brands fa-github"></i>Lanjutkan dengan GitHub
-              </button>
-            </div>
+              <div className="relative text-center border-b lp-hairline py-1">
+                <span className="px-2 lp-kicker relative -top-3" style={{ background: "var(--paper-deep)" }}>
+                  atau dengan password
+                </span>
+              </div>
 
-            <div className="relative text-center border-b border-white/5 py-1">
-              <span className="bg-zinc-950 px-2 text-[10px] text-zinc-600 relative -top-3">atau dengan password</span>
-            </div>
-
-            <form onSubmit={submitAuthForm} className="space-y-3 text-xs">
-              {authTab === "register" && (
+              <form onSubmit={submitAuthForm} className="space-y-6">
+                {authTab === "register" && (
+                  <div>
+                    <label className="lp-kicker block mb-1">Nama lengkap</label>
+                    <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Bagas Adi" className="lp-field" />
+                  </div>
+                )}
                 <div>
-                  <label className="block text-zinc-500 mb-1.5 text-[10px] font-bold uppercase tracking-wider">Nama Lengkap</label>
-                  <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Bagas Adi" className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800/50 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 transition-all" />
+                  <label className="lp-kicker block mb-1">Alamat email</label>
+                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="user@domain.com" className="lp-field" />
                 </div>
-              )}
-              <div>
-                <label className="block text-zinc-500 mb-1.5 text-[10px] font-bold uppercase tracking-wider">Alamat Email</label>
-                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="user@domain.com" className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800/50 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 transition-all" />
-              </div>
-              <div>
-                <label className="block text-zinc-500 mb-1.5 text-[10px] font-bold uppercase tracking-wider">Password</label>
-                <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800/50 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 transition-all" />
-              </div>
-
-              <div className="p-4 rounded-xl bg-zinc-900/30 border border-zinc-800/30 space-y-2">
-                <label className="block text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Verifikasi Keamanan hCaptcha</label>
-                <div className="flex justify-center my-2 min-h-[78px]">
-                  <div className="h-captcha" data-sitekey="169e06e6-008a-4592-a63a-8e6874786af0" data-callback="onHCaptchaSuccess" data-expired-callback="onHCaptchaExpired"></div>
+                <div>
+                  <label className="lp-kicker block mb-1">Password</label>
+                  <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="lp-field" />
                 </div>
-              </div>
 
-              <button type="submit" className="w-full py-3.5 rounded-xl emerald-btn text-xs font-bold text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all">
-                {authTab === "register" ? "Daftar Akun Gratis (10x/Hari)" : "Masuk ke Dashboard"}
-              </button>
-            </form>
+                <div className="p-4 space-y-2" style={{ border: "1px solid var(--line)", background: "var(--paper)" }}>
+                  <label className="block lp-kicker">Verifikasi keamanan hCaptcha</label>
+                  <div className="flex justify-center my-2 min-h-[78px]">
+                    <div className="h-captcha" data-sitekey="169e06e6-008a-4592-a63a-8e6874786af0" data-callback="onHCaptchaSuccess" data-expired-callback="onHCaptchaExpired"></div>
+                  </div>
+                </div>
+
+                <button type="submit" className="lp-btn w-full justify-center">
+                  {authTab === "register" ? "Daftar akun gratis (10x/hari)" : "Masuk ke dashboard"}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -1,0 +1,250 @@
+/* ============================================================
+   lp.css — ADISosmed Landing ("lembar siar")
+   Keluarga editorial ADI: kertas hangat + serif + hairline.
+   Ter-scope di .lp-* — dashboard/admin/tickets tidak terpengaruh.
+   ============================================================ */
+
+.lp-root {
+  --paper: #f5f1e8;
+  --paper-deep: #ede7d9;
+  --ink: #211d15;
+  --ink-soft: #57503f;
+  --ink-faint: #8a8270;
+  --line: #d8d0bf;
+  --accent: #a6431c;
+  --accent-ink: #7e3113;
+
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.lp-root ::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.lp-serif {
+  font-family: var(--font-display), "Iowan Old Style", Georgia, serif;
+  font-optical-sizing: auto;
+}
+.lp-body {
+  font-family: var(--font-body), "Iowan Old Style", Georgia, serif;
+}
+.lp-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+.lp-hairline {
+  border-color: var(--line);
+}
+
+.lp-kicker {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.lp-kicker strong {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.lp-headline {
+  font-weight: 560;
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  font-size: clamp(2.6rem, 6vw, 5rem);
+}
+.lp-headline em {
+  font-style: italic;
+  font-weight: 480;
+  color: var(--accent);
+}
+
+.lp-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 140ms ease, color 140ms ease;
+}
+.lp-link:hover {
+  text-decoration-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 26px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--ink);
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+}
+.lp-btn:hover {
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
+.lp-btn:active {
+  transform: translateY(1px);
+}
+.lp-btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+.lp-btn-ghost:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.lp-btn-plain {
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--font-body), Georgia, serif;
+  font-size: 14px;
+  justify-content: center;
+}
+.lp-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Titik-titik pengisi ala daftar isi buku */
+.lp-toc-dots {
+  border-bottom: 1px dotted var(--ink-faint);
+  transform: translateY(-4px);
+}
+
+.lp-field {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ink-faint);
+  padding: 12px 2px;
+  font-family: var(--font-body), Georgia, serif;
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 150ms ease;
+}
+.lp-field::placeholder {
+  color: var(--ink-faint);
+}
+.lp-field:focus {
+  border-bottom-color: var(--accent);
+  border-bottom-width: 2px;
+}
+
+/* Baris daftar: nomor mono + judul italic + meta kanan */
+.lp-row {
+  display: grid;
+  grid-template-columns: 64px minmax(170px, 240px) 1fr auto;
+  gap: 18px;
+  align-items: baseline;
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+  transition: background 150ms ease;
+}
+.lp-row:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.lp-row:hover {
+  background: rgba(166, 67, 28, 0.04);
+}
+@media (max-width: 720px) {
+  .lp-row {
+    grid-template-columns: 44px 1fr auto;
+  }
+  .lp-row-desc {
+    grid-column: 2 / -1;
+    margin-top: 4px;
+  }
+}
+
+/* Panel kertas tajam */
+.lp-panel {
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  box-shadow: 6px 6px 0 0 rgba(33, 29, 21, 0.14);
+}
+.lp-panel-inner {
+  border: 1px solid var(--line);
+  margin: 6px;
+  padding: 20px;
+}
+
+/* Kliping feed: kartu pos bergaya potongan koran */
+.lp-clip {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  transition: border-color 300ms ease, opacity 300ms ease, box-shadow 300ms ease;
+}
+.lp-clip-active {
+  border-color: var(--ink);
+  box-shadow: 4px 4px 0 0 rgba(166, 67, 28, 0.25);
+}
+.lp-clip-done {
+  opacity: 0.75;
+}
+.lp-clip-idle {
+  opacity: 0.45;
+}
+
+.lp-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+.lp-stamp {
+  display: inline-block;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  padding: 6px 12px;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+/* Toast sebagai potongan kertas */
+.lp-toast {
+  background: var(--paper-deep);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-left-width: 4px;
+  padding: 10px 14px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  box-shadow: 4px 4px 0 0 rgba(33, 29, 21, 0.14);
+  animation: lp-slide 220ms ease;
+}
+@keyframes lp-slide {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Modal auth */
+.lp-overlay {
+  background: rgba(33, 29, 21, 0.55);
+}
+.lp-root :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-root * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
