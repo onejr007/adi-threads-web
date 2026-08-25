@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ADI Threads SaaS — Platform Otomasi Meta Threads #1",
-  description: "Platform SaaS Otomasi Meta Threads AI nomor 1 di Indonesia ditenagai oleh Ekosistem ADI & Protokol ADILANG.",
+  title: "ADI Sosmed — Engine Otomasi Multi-Platform Social Media",
+  description: "Otomatisasi posting, komentar, dan growth di Threads, X, Instagram, TikTok, dan lainnya. Satu dashboard untuk semua platform, ditenagai Ekosistem ADI & Protokol ADILANG.",
 };
 
 export default function RootLayout({
