@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import "./lp.css";
 
@@ -13,52 +13,21 @@ const platforms = [
   { name: "LinkedIn", status: "dev" },
 ];
 
-const demoPosts = [
-  {
-    mode: "post_biasa",
-    label: "Postingan Biasa",
-    text: "Kabar gembira: hari ini kami baru saja meluncurkan fitur auto-scheduling yang diminta banyak pengguna. Cek dashboard kamu sekarang.",
-    platform: "threads",
-  },
-  {
-    mode: "post_multi_thread",
-    label: "Utasan Bersambung",
-    text: "1/4 — Ada 3 mitos tentang otomasi social media yang perlu kita luruskan. Banyak yang bilang: otomasi = spam. Itu tidak benar.",
-    platform: "threads",
-  },
-  {
-    mode: "post_biasa_image",
-    label: "Postingan + Gambar",
-    text: "Behind the scenes: ini yang terjadi di ADI HQ tiap kali kami deploy fitur baru. Tim engineering sudah bekerja 18 jam nonstop.",
-    platform: "threads",
-  },
-  {
-    mode: "post_soft_selling_adiplay",
-    label: "Soft Sell — ADI Play",
-    text: "Kalau kamu mencari cara untuk tracking performa konten tanpa ribet, coba ADI Play. Bukan cuma analytics, tapi gameplay yang bikin kamu tetap konsisten.",
-    platform: "threads",
-    link: "https://play.myadi.my.id",
-  },
-  {
-    mode: "post_soft_selling_adinews",
-    label: "Soft Sell — ADI News",
-    text: "Berita dunia kreator digital bertambah cepat. ADI News membantu kamu tetap update tanpa harus scroll feed seharian. Auto-curated, human-edited.",
-    platform: "threads",
-    link: "https://news.myadi.my.id",
-  },
-  {
-    mode: "post_copy_paste_viral",
-    label: "Remix Viral",
-    text: "Viral thread hari ini ngomongin produktivitasRemote. Poinnya: bukan soal tools, tapi sistem. Alasan kami build ADI Engine exactly for this.",
-    platform: "threads",
-  },
+const demoTimes = ["06:12", "08:47", "11:03", "13:26", "16:58"];
+
+const scheduleSheet = [
+  { time: "06:12", label: "Postingan Biasa" },
+  { time: "08:47", label: "Utasan Bersambung" },
+  { time: "11:03", label: "Soft Sell — Situs" },
+  { time: "13:26", label: "Konten Engagement" },
+  { time: "16:58", label: "Remix Viral" },
 ];
 
 const liveStats = [
-  { label: "Kirim terekam (24j)", value: 1247, suffix: "" },
-  { label: "Akun aktif", value: 83, suffix: "" },
-  { label: "Engagement rata-rata", value: 4.2, suffix: "%" },
-  { label: "Uptime engine", value: 99.97, suffix: "%" },
+  { label: "Kirim terekam (24j)", value: 1247, suffix: "", decimals: 0 },
+  { label: "Akun aktif", value: 83, suffix: "", decimals: 0 },
+  { label: "Engagement rata-rata", value: 4.2, suffix: "%", decimals: 1 },
+  { label: "Uptime engine", value: 99.97, suffix: "%", decimals: 2 },
 ];
 
 const features = [
@@ -70,11 +39,149 @@ const features = [
   { title: "Analitik terpadu", desc: "Kinerja tiap kiriman, pertumbuhan pengikut, dan riwayat versi konten dalam satu layar.", meta: "satu layar" },
 ];
 
-const demoTimes = ["06:12", "08:47", "11:03", "13:26", "16:58", "19:41"];
+const tosPoints = [
+  {
+    title: "Kuota harian terkunci",
+    desc: "10 posting dan 10 komentar per hari — titik. Saat kuota habis, mesin berhenti sendiri. Tidak ada mode tanpa batas, tidak ada upsell spam.",
+    meta: "hard stop",
+  },
+  {
+    title: "Ritme manusiawi",
+    desc: "Jeda antar kiriman diacak dan mengikuti jam aktif audiens Anda. Pola tembakan bot tidak akan pernah muncul dari engine ini.",
+    meta: "anti-spam",
+  },
+  {
+    title: "Token terkunci rapat",
+    desc: "Kredensial akun disimpan terenkripsi end-to-end, hanya dipakai untuk akun Anda sendiri, dan tidak pernah dibagikan ke pihak mana pun.",
+    meta: "e2e encrypted",
+  },
+  {
+    title: "TOS Guard aktif 24/7",
+    desc: "Setiap kiriman melewati pemeriksaan aturan platform sebelum terkirim. Bila aktivitas mendekati batas yang dilarang, engine menahan diri lebih dulu — bukan sesudah dilaporkan.",
+    meta: "patuh threads & x",
+  },
+];
+
+// ══ Sandbox: generator konten lokal (fake — tidak ada network call) ══
+type GoalDef = { id: string; label: string; modeLabel: string };
+const GOALS: GoalDef[] = [
+  { id: "produk", label: "Iklan produk", modeLabel: "Postingan + Gambar" },
+  { id: "situs", label: "Promo situs / web", modeLabel: "Soft Sell — Situs" },
+  { id: "engage", label: "Konten engagement", modeLabel: "Utasan Pertanyaan" },
+  { id: "viral", label: "Remix thread viral", modeLabel: "Remix Viral" },
+];
+
+function buildPost(niche: string, goalId: string): { label: string; text: string } {
+  const n = niche.trim() || "bisnis kecilmu";
+  const pools: Record<string, string[]> = {
+    produk: [
+      `Buat kamu yang serius menekuni ${n}: kami baru saja merilis sesuatu yang membuat rutinitas ${n} jadi jauh lebih ringkas. Lihat gambarnya — lalu cerita versi kamu di komentar.`,
+      `Setahun membangun untuk komunitas ${n}, dan hari ini bagian favorit kami akhirnya tayang. Kalau kamu aktif di ${n}, ini dibuat khusus untukmu.`,
+    ],
+    situs: [
+      `Semua tentang ${n} sekarang ada di satu halaman: panduan awal, tips praktis, dan update mingguan. Link ada di bio — mulai dari yang paling dasar saja dulu.`,
+      `Berhenti mencari-cari info ${n} yang berserakan. Kami rangkum jadi satu situs rapi, diperbarui tiap pekan. Cek link di bio.`,
+    ],
+    engage: [
+      `Pertanyaan untuk yang kerap berkecimpung di ${n}: kalau harus memilih SATU kebiasaan yang paling mengubah hasil kamu tahun ini, apa jawabannya?`,
+      `Jujur-jujuran seputar ${n}: apa mitos yang masih banyak dipercaya pemula tapi menurut kamu sudah lewat zamannya?`,
+    ],
+    viral: [
+      `Thread viral kemarin membahas ${n}. Poin intinya sederhana: konsistensi mengalahkan tools termahal sekalipun. Setuju, atau justru sebaliknya?`,
+      `Sedang ramai debat soal ${n}. Versi kami singkat: mulai kecil, ukur datanya, lanjutkan yang terbukti. Bagaimana versi kamu?`,
+    ],
+  };
+  const arr = pools[goalId] || pools.produk;
+  const g = GOALS.find((x) => x.id === goalId);
+  return { label: g ? g.modeLabel : "Postingan Biasa", text: arr[Math.floor(Math.random() * arr.length)] };
+}
+
+type SbPhase = "idle" | "scan" | "topics" | "compose" | "typing" | "sent";
+
+// ══ Util transisi ═══════════════════════════════════════════════════
+
+function Reveal({ children, delay = 0, tilt = false, className = "" }: {
+  children: React.ReactNode;
+  delay?: number;
+  tilt?: boolean;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.12 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`${tilt ? "lp-tilt" : "lp-reveal"} ${inView ? "is-in" : ""} ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function CountUp({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDisplay(value);
+      return;
+    }
+    let raf = 0;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        const t0 = performance.now();
+        const dur = 1300;
+        const tick = (t: number) => {
+          const p = Math.min(1, (t - t0) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          setDisplay(value * eased);
+          if (p < 1) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      },
+      { threshold: 0.4 }
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [value]);
+
+  return <span ref={ref}>{display.toFixed(decimals)}</span>;
+}
 
 type Toast = { id: number; text: string; type: "success" | "info" | "warn" };
 
 export default function LandingPage() {
+  // Auth & user
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "register">("register");
   const [hcaptchaToken, setHcaptchaToken] = useState("");
@@ -82,10 +189,21 @@ export default function LandingPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [demoStep, setDemoStep] = useState(0);
-  const [demoRunning, setDemoRunning] = useState(false);
+
+  // Toasts & stat hidup
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [liveCounter, setLiveCounter] = useState(1247);
+
+  // Sandbox
+  const [niche, setNiche] = useState("");
+  const [goal, setGoal] = useState("produk");
+  const [sbPhase, setSbPhase] = useState<SbPhase>("idle");
+  const [logs, setLogs] = useState<string[]>([]);
+  const [typed, setTyped] = useState("");
+  const [post, setPost] = useState<{ label: string; text: string } | null>(null);
+  const [sentAt, setSentAt] = useState("");
+  const [reach, setReach] = useState(0);
+  const sbTimers = useRef<number[]>([]);
 
   const addToast = useCallback((text: string, type: Toast["type"] = "info") => {
     const id = Date.now() + Math.random();
@@ -117,28 +235,85 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const runDemo = useCallback(() => {
-    setDemoRunning(true);
-    setDemoStep(0);
-    addToast("Demo dimulai: engine connecting...", "info");
+  // ── Sandbox engine ──────────────────────────────────────────────
+  const clearSbTimers = useCallback(() => {
+    sbTimers.current.forEach((t) => clearTimeout(t));
+    sbTimers.current = [];
+  }, []);
 
-    const delays = [800, 1800, 2800, 4200, 5600, 7200];
-    delays.forEach((delay, i) => {
-      setTimeout(() => {
-        setDemoStep(i + 1);
-        const post = demoPosts[i];
-        if (i === 0) addToast(`Menggali thread relevan untuk niche kamu...`, "info");
-        if (i === 1) addToast(`Ditemukan 3 topik panas. Memilih yang paling engage...`, "info");
-        if (i === 2) addToast(`Konten siap. Mode: ${post.label}`, "info");
-        if (i === 3) addToast(`Mengirim ke Threads API...`, "info");
-        if (i === 4) addToast(`Postingan terkirim! ID: ${Math.random().toString(36).slice(2, 10).toUpperCase()}`, "success");
-        if (i === 5) {
-          addToast(`Siklus selesai. Menunggu 2 jam sebelum posting berikutnya.`, "success");
-          setTimeout(() => setDemoRunning(false), 600);
-        }
-      }, delay);
+  const pushLog = useCallback((line: string) => {
+    const now = new Date().toLocaleTimeString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
-  }, [addToast]);
+    setLogs((prev) => [...prev, `${now}  ${line}`]);
+  }, []);
+
+  const playSandbox = useCallback(() => {
+    clearSbTimers();
+    setLogs([]);
+    setTyped("");
+    setPost(null);
+    const built = buildPost(niche, goal);
+    setPost(built);
+    pushLog(`memindai niche "${niche.trim() || "umum"}"…`);
+    setSbPhase("scan");
+    addToast("Sandbox berjalan — tidak ada yang dikirim sungguhan.", "info");
+
+    sbTimers.current.push(window.setTimeout(() => {
+      pushLog("3 kandidat topik dinilai · skor tertinggi dipilih");
+      setSbPhase("topics");
+    }, 1100));
+    sbTimers.current.push(window.setTimeout(() => {
+      pushLog(`menyusun draf · mode: ${built.label}`);
+      setSbPhase("compose");
+    }, 2300));
+    sbTimers.current.push(window.setTimeout(() => setSbPhase("typing"), 3200));
+  }, [niche, goal, clearSbTimers, pushLog, addToast]);
+
+  // Efek mengetik
+  useEffect(() => {
+    if (sbPhase !== "typing" || !post) return;
+    let i = 0;
+    const iv = window.setInterval(() => {
+      i += 2;
+      setTyped(post.text.slice(0, i));
+      if (i >= post.text.length) {
+        clearInterval(iv);
+        const now = new Date().toLocaleTimeString("id-ID", {
+          timeZone: "Asia/Jakarta",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        setSentAt(now);
+        setReach(Math.floor(Math.random() * 400) + 120);
+        setSbPhase("sent");
+        pushLog("terkirim ke antrean siar (simulasi)");
+        addToast("Simulasi selesai — postingan TIDAK dikirim sungguhan.", "success");
+      }
+    }, 22);
+    return () => clearInterval(iv);
+  }, [sbPhase, post, pushLog, addToast]);
+
+  useEffect(() => () => clearSbTimers(), [clearSbTimers]);
+
+  const resetSandbox = useCallback(() => {
+    clearSbTimers();
+    window.clearInterval(-1); // no-op guard
+    setSbPhase("idle");
+    setLogs([]);
+    setTyped("");
+    setPost(null);
+  }, [clearSbTimers]);
+
+  const scrollToSandbox = useCallback(() => {
+    document.getElementById("sandbox")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+  }, []);
 
   const triggerOAuth = (provider: string) => {
     let token = hcaptchaToken;
@@ -204,26 +379,26 @@ export default function LandingPage() {
             ADISosmed
           </Link>
           <span className="hidden md:block lp-kicker flex-1 text-center">
-            Mesin kehadiran sosial media · aio ekosistem adi
+            Mesin kehadiran sosial media · ekosistem adi
           </span>
-          <div className="flex items-center gap-4 whitespace-nowrap">
+          <div className="flex items-center gap-5 whitespace-nowrap">
             {currentUser ? (
               <>
                 {currentUser.email === "chilooks91@gmail.com" && (
-                  <Link href="/admin" className="lp-mono text-xs uppercase tracking-[0.14em] lp-link" style={{ color: "var(--accent)" }}>
+                  <Link href="/admin" className="lp-mono text-xs uppercase tracking-[0.14em] lp-navlink" style={{ color: "var(--accent)" }}>
                     Admin
                   </Link>
                 )}
-                <Link href="/tickets" className="lp-mono text-xs uppercase tracking-[0.14em] lp-link">
+                <Link href="/tickets" className="lp-mono text-xs uppercase tracking-[0.14em] lp-navlink">
                   Tiket
                 </Link>
-                <Link href="/dashboard" className="lp-mono text-xs uppercase tracking-[0.14em] lp-link">
+                <Link href="/dashboard" className="lp-mono text-xs uppercase tracking-[0.14em] lp-navlink">
                   Dashboard
                 </Link>
               </>
             ) : (
               <>
-                <button onClick={() => { setAuthTab("login"); setShowAuthModal(true); }} className="lp-mono text-xs uppercase tracking-[0.14em] lp-link cursor-pointer">
+                <button onClick={() => { setAuthTab("login"); setShowAuthModal(true); }} className="lp-mono text-xs uppercase tracking-[0.14em] lp-navlink cursor-pointer bg-transparent border-none p-0">
                   Masuk
                 </button>
                 <button onClick={() => { setAuthTab("register"); setShowAuthModal(true); }} className="lp-mono text-xs uppercase tracking-[0.14em] px-4 py-2 cursor-pointer" style={{ background: "var(--ink)", color: "var(--paper)" }}>
@@ -239,59 +414,68 @@ export default function LandingPage() {
       <section className="px-6 pt-20 pb-16">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 items-start">
           <div className="lg:col-span-8">
-            <p className="lp-kicker mb-8">
-              Mesin siar harian <strong>· {liveCounter.toLocaleString()} kiriman bulan ini</strong>
-            </p>
+            <Reveal>
+              <p className="lp-kicker mb-8">
+                Mesin siar harian <strong>· {liveCounter.toLocaleString()} kiriman bulan ini</strong>
+              </p>
+            </Reveal>
             <h1 className="lp-serif lp-headline">
-              Hadir setiap hari,
-              <br />
-              <em>tanpa buka aplikasinya.</em>
+              <span className="lp-mask"><span>Hadir setiap hari,</span></span>
+              <span className="lp-mask"><span><em>tanpa buka aplikasinya.</em></span></span>
             </h1>
-            <p className="lp-body text-lg leading-relaxed mt-8 max-w-xl" style={{ color: "var(--ink-soft)" }}>
-              ADISosmed menjaga akun sosial media Anda tetap hidup: posting
-              terjadwal, komentar yang dijawab, thread relevan yang dikejar —
-              dengan ritme yang terbaca manusiawi, bukan tembakan bot.
-            </p>
-            <div className="flex flex-wrap items-center gap-5 mt-10">
-              <button
-                onClick={() => {
-                  if (currentUser) window.location.href = "/dashboard";
-                  else { setAuthTab("register"); setShowAuthModal(true); }
-                }}
-                className="lp-btn"
-              >
-                Mulai gratis — 10x/hari
-              </button>
-              <button onClick={runDemo} disabled={demoRunning} className="lp-btn lp-btn-ghost">
-                {demoRunning ? "Siklus berjalan…" : "Jalankan siklusnya"}
-              </button>
-            </div>
+            <Reveal delay={250}>
+              <p className="lp-body text-lg leading-relaxed mt-8 max-w-xl" style={{ color: "var(--ink-soft)" }}>
+                ADISosmed menjaga akun sosial media Anda tetap hidup: posting
+                terjadwal, komentar yang dijawab, thread relevan yang dikejar —
+                dengan ritme yang terbaca manusiawi, bukan tembakan bot.
+              </p>
+            </Reveal>
+            <Reveal delay={400}>
+              <div className="flex flex-wrap items-center gap-5 mt-10">
+                <button
+                  onClick={() => {
+                    if (currentUser) window.location.href = "/dashboard";
+                    else { setAuthTab("register"); setShowAuthModal(true); }
+                  }}
+                  className="lp-btn"
+                >
+                  <span>Mulai gratis — 10x/hari</span>
+                </button>
+                <button onClick={scrollToSandbox} className="lp-btn lp-btn-ghost">
+                  <span>
+                    Jalankan siklusnya
+                    <span className="btn-arrow">↓</span>
+                  </span>
+                </button>
+              </div>
+            </Reveal>
 
-            {/* Platform: daftar mono, tanda † untuk yang masih dev */}
-            <p className="lp-mono text-xs mt-12 leading-relaxed" style={{ color: "var(--ink-faint)" }}>
-              {platforms.map((p, i) => (
-                <span key={p.name}>
-                  <span style={{ color: p.status === "live" ? "var(--ink)" : undefined }}>{p.name}</span>
-                  {p.status === "dev" && "†"}
-                  {i < platforms.length - 1 && "  ·  "}
-                </span>
-              ))}
-            </p>
-            <p className="lp-mono text-[10px] mt-1" style={{ color: "var(--ink-faint)" }}>
-              † sedang dibangun
-            </p>
+            <Reveal delay={550}>
+              <p className="lp-mono text-xs mt-12 leading-relaxed" style={{ color: "var(--ink-faint)" }}>
+                {platforms.map((p, i) => (
+                  <span key={p.name}>
+                    <span style={{ color: p.status === "live" ? "var(--ink)" : undefined }}>{p.name}</span>
+                    {p.status === "dev" && "†"}
+                    {i < platforms.length - 1 && "  ·  "}
+                  </span>
+                ))}
+              </p>
+              <p className="lp-mono text-[10px] mt-1" style={{ color: "var(--ink-faint)" }}>
+                † sedang dibangun
+              </p>
+            </Reveal>
           </div>
 
           {/* Panel jadwal siar */}
-          <aside className="lg:col-span-4">
+          <Reveal delay={300} tilt className="lg:col-span-4">
             <div className="lp-panel">
               <div className="lp-panel-inner">
                 <p className="lp-kicker mb-5">Lembar siar hari ini</p>
                 <ol className="space-y-3">
-                  {demoPosts.slice(0, 5).map((post, i) => (
-                    <li key={post.mode} className="flex items-baseline gap-3">
-                      <span className="lp-mono text-xs" style={{ color: "var(--accent)" }}>{demoTimes[i]}</span>
-                      <span className="lp-body italic truncate">{post.label}</span>
+                  {scheduleSheet.map((row) => (
+                    <li key={row.time} className="flex items-baseline gap-3">
+                      <span className="lp-mono text-xs" style={{ color: "var(--accent)" }}>{row.time}</span>
+                      <span className="lp-body italic truncate">{row.label}</span>
                     </li>
                   ))}
                 </ol>
@@ -301,15 +485,22 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-          </aside>
+          </Reveal>
         </div>
 
-        {/* STATISTIK: baris kawat, bukan kartu */}
+        {/* STATISTIK: angka menghitung naik saat masuk layar */}
         <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 mt-20 border-t border-b lp-hairline">
           {liveStats.map((s, i) => (
             <div key={i} className={`py-6 px-4 text-center ${i > 0 ? "sm:border-l lp-hairline" : ""}`}>
               <div className="lp-serif text-3xl font-medium">
-                {i === 0 ? liveCounter.toLocaleString() : s.value}{s.suffix}
+                {i === 0 ? (
+                  liveCounter.toLocaleString()
+                ) : (
+                  <>
+                    <CountUp value={s.value} decimals={s.decimals} />
+                  </>
+                )}
+                {s.suffix}
               </div>
               <div className="lp-kicker mt-2">{s.label}</div>
             </div>
@@ -317,101 +508,234 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* DEMO */}
-      <section className="px-6 py-24" style={{ background: "var(--paper-deep)" }}>
+      {/* SANDBOX LIVE — simulasi siklus kirim sesuai input pengguna */}
+      <section id="sandbox" className="px-6 py-24 scroll-mt-16" style={{ background: "var(--paper-deep)" }}>
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap items-end justify-between gap-4 mb-12">
-            <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight max-w-lg leading-tight">
-              Satu siklus, enam mode <em>kirim.</em>
-            </h2>
-            <div className="flex items-center gap-3">
-              <span
-                className="lp-tag lp-mono"
-                style={{ color: demoRunning ? "var(--accent)" : "var(--ink-faint)" }}
-              >
-                {demoRunning ? "● live" : "○ idle"}
-              </span>
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-3">
+              <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight max-w-xl leading-tight">
+                Coba mesinnya <em>di dalam sandbox.</em>
+              </h2>
+              <span className="lp-stamp lp-mono shrink-0">sandbox · fake</span>
             </div>
-          </div>
+            <p className="lp-body max-w-2xl leading-relaxed mb-12" style={{ color: "var(--ink-soft)" }}>
+              Isi niche dan tujuan konten Anda, lalu tekan Play. Mesin akan
+              mensimulasikan satu siklus penuh — dari pemindaian topik sampai
+              kiriman jadi — semuanya di halaman ini, tanpa mengirim apa pun.
+            </p>
+          </Reveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Kiri: daftar mode */}
-            <div>
-              {demoPosts.map((post, i) => (
-                <div key={post.mode} className="flex items-baseline gap-4 py-3 border-t last:border-b lp-hairline">
-                  <span className="lp-mono text-xs shrink-0" style={{ color: demoStep > i ? "var(--accent)" : "var(--ink-faint)" }}>
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div className="min-w-0">
-                    <span className="lp-body italic">{post.label}</span>
-                    {demoStep > i && <span className="lp-mono text-[9px] uppercase tracking-widest ml-3" style={{ color: "var(--accent)" }}>selesai</span>}
-                  </div>
-                  <span className="hidden sm:block lp-toc-dots flex-1" />
-                  <span className="hidden lg:block lp-body text-xs truncate max-w-[220px]" style={{ color: "var(--ink-faint)" }}>
-                    {post.text.split(".")[0]}
-                  </span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Kiri: konfigurasi */}
+            <Reveal delay={120} className="lg:col-span-5">
+              <div className="space-y-7 lg:sticky lg:top-24">
+                <div>
+                  <label htmlFor="sb-niche" className="lp-kicker block mb-2">Niche / bidang kamu</label>
+                  <input
+                    id="sb-niche"
+                    type="text"
+                    value={niche}
+                    onChange={(e) => setNiche(e.target.value)}
+                    className="lp-field"
+                    placeholder="mis. kopi susah rumahan, fashion muslim…"
+                    maxLength={60}
+                  />
                 </div>
-              ))}
-            </div>
 
-            {/* Kanan: kliping feed */}
-            <div className="space-y-3">
-              {demoPosts.map((post, i) => {
-                const isActive = demoStep === i + 1;
-                const isDone = demoStep > i + 1;
-                return (
+                <div>
+                  <p className="lp-kicker mb-2">Tujuan konten</p>
+                  <div className="border-t lp-hairline">
+                    {GOALS.map((g) => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => setGoal(g.id)}
+                        className={`lp-goal w-full text-left py-3.5 px-3 border-b lp-hairline bg-transparent border-t-0 border-r-0 cursor-pointer flex items-baseline justify-between gap-3 ${goal === g.id ? "lp-goal-on" : ""}`}
+                      >
+                        <span className={`lp-body ${goal === g.id ? "italic font-semibold" : ""}`} style={goal === g.id ? { color: "var(--accent-ink)" } : undefined}>
+                          {g.label}
+                        </span>
+                        <span className="lp-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>
+                          {g.modeLabel}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4">
+                  <button onClick={playSandbox} disabled={sbPhase !== "idle" && sbPhase !== "sent"} className="lp-btn">
+                    <span>
+                      ▸ Play
+                      <span className="btn-arrow">→</span>
+                    </span>
+                  </button>
+                  {(sbPhase !== "idle") && (
+                    <button onClick={resetSandbox} className="lp-mono text-xs uppercase tracking-[0.14em] lp-link bg-transparent border-none cursor-pointer">
+                      reset
+                    </button>
+                  )}
+                </div>
+                <p className="lp-mono text-[10px] leading-relaxed" style={{ color: "var(--ink-faint)" }}>
+                  * Simulasi murni di browser Anda. Tidak ada koneksi ke Threads,
+                  tidak ada data yang dikumpulkan.
+                </p>
+              </div>
+            </Reveal>
+
+            {/* Kanan: output simulasi */}
+            <Reveal delay={240} className="lg:col-span-7">
+              <div className="lp-panel">
+                <div className="lp-panel-inner min-h-[380px] flex flex-col">
+                  {/* Log langkah */}
+                  <div className="min-h-[92px] mb-5">
+                    <p className="lp-kicker mb-3">Log mesin</p>
+                    <div className="space-y-1.5">
+                      {logs.length === 0 && (
+                        <p className="lp-mono text-[11px]" style={{ color: "var(--ink-faint)" }}>
+                          menunggu perintah…
+                        </p>
+                      )}
+                      {logs.map((l, i) => (
+                        <p key={i} className="lp-logline lp-mono text-[11px]" style={{ color: i === logs.length - 1 ? "var(--ink)" : "var(--ink-faint)" }}>
+                          {l}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Kliping kiriman tersimulasi */}
                   <article
-                    key={post.mode}
-                    className={`lp-clip ${isActive ? "lp-clip-active" : isDone ? "lp-clip-done" : "lp-clip-idle"}`}
+                    className={`lp-clip mt-auto ${sbPhase === "sent" ? "lp-clip-active" : sbPhase === "typing" || sbPhase === "compose" ? "" : "lp-clip-idle"}`}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="lp-mono text-[10px] tracking-wider" style={{ color: "var(--ink-faint)" }}>
-                        @adi_agent · {demoTimes[i]} WIB
+                        @akun_anda{sentAt ? ` · ${sentAt} WIB` : ""}
                       </span>
                       <span className="ml-auto">
-                        {isActive && (
-                          <span className="lp-tag lp-mono animate-pulse" style={{ color: "var(--accent)" }}>mengirim</span>
-                        )}
-                        {isDone && (
-                          <span className="lp-tag lp-mono" style={{ color: "#3f6212" }}>terkirim</span>
-                        )}
+                        {sbPhase === "typing" && <span className="lp-tag lp-mono animate-pulse" style={{ color: "var(--accent)" }}>menulis</span>}
+                        {sbPhase === "sent" && <span className="lp-tag lp-mono" style={{ color: "#3f6212" }}>terkirim · simulasi</span>}
                       </span>
                     </div>
-                    <p className="lp-body text-sm leading-relaxed">{post.text}</p>
-                    {post.link && (
-                      <a href={post.link} target="_blank" rel="noreferrer" className="lp-mono text-[11px] lp-link inline-block mt-2">
-                        {post.link}
-                      </a>
+
+                    {post ? (
+                      <p className="lp-body text-sm leading-relaxed min-h-[84px]">
+                        {typed}
+                        {(sbPhase === "typing") && <span className="lp-caret" />}
+                      </p>
+                    ) : (
+                      <p className="lp-body text-sm leading-relaxed min-h-[84px]" style={{ color: "var(--ink-faint)" }}>
+                        Kiriman tersimulasi akan muncul di sini, ditulis karakter
+                        demi karakter persis seperti keluaran mesin.
+                      </p>
+                    )}
+
+                    {sbPhase === "sent" && post && (
+                      <div className="mt-4 pt-3 border-t lp-hairline flex flex-wrap items-center justify-between gap-2">
+                        <span className="lp-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--ink-faint)" }}>
+                          estimasi jangkauan 24j: ~{reach} tayangan
+                        </span>
+                        <span className="lp-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--accent)" }}>
+                          mode: {post.label}
+                        </span>
+                      </div>
                     )}
                   </article>
-                );
-              })}
-            </div>
+                </div>
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* FITUR: baris editorial, tanpa ikon dekoratif */}
+      {/* FITUR: baris editorial */}
       <section className="px-6 py-24">
         <div className="max-w-6xl mx-auto">
-          <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight mb-12 max-w-xl leading-tight">
-            Yang dikerjakan mesin ini <em>setiap hari.</em>
-          </h2>
+          <Reveal>
+            <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight mb-12 max-w-xl leading-tight">
+              Yang dikerjakan mesin ini <em>setiap hari.</em>
+            </h2>
+          </Reveal>
           <div>
-            {features.map((f) => (
-              <div key={f.title} className="lp-row">
-                <span className="lp-mono text-xs" style={{ color: "var(--accent)" }}>—</span>
-                <h3 className="lp-serif italic text-xl">{f.title}</h3>
-                <p className="lp-row-desc lp-body leading-relaxed max-w-xl" style={{ color: "var(--ink-soft)" }}>
-                  {f.desc}
-                </p>
-                <span className="lp-mono text-[10px] uppercase tracking-[0.18em] whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
-                  {f.meta}
-                </span>
-              </div>
+            {features.map((f, i) => (
+              <Reveal key={f.title} delay={(i % 3) * 90}>
+                <div className="lp-row">
+                  <span className="lp-mono text-xs" style={{ color: "var(--accent)" }}>—</span>
+                  <h3 className="lp-serif italic text-xl">{f.title}</h3>
+                  <p className="lp-row-desc lp-body leading-relaxed max-w-xl" style={{ color: "var(--ink-soft)" }}>
+                    {f.desc}
+                  </p>
+                  <span className="lp-mono text-[10px] uppercase tracking-[0.18em] whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
+                    {f.meta}
+                  </span>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* KEAMANAN & TOS GUARD */}
+      <section className="px-6 py-24" style={{ background: "var(--paper-deep)" }}>
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12">
+          <Reveal className="lg:col-span-5 lg:sticky lg:top-24 self-start">
+            <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight mb-3 max-w-sm leading-tight">
+              Keamanan akun itu fitur utama, bukan tambahan.
+            </h2>
+            <p className="lp-body max-w-sm mb-4" style={{ color: "var(--ink-soft)" }}>
+              Engine dirancang untuk berhenti lebih dulu daripada menyesal
+              belakangan. Kuota ketat, ritme diacak, token terenkripsi — dan
+              TOS Guard memantau setiap kiriman sebelum terkirim.
+            </p>
+            <span className="lp-stamp lp-mono" style={{ color: "var(--accent)" }}>tos guard · aktif</span>
+          </Reveal>
+
+          <div className="lg:col-span-7 space-y-0 border-t lp-hairline">
+            {tosPoints.map((p, i) => (
+              <Reveal key={p.title} delay={i * 80}>
+                <div className="lp-row">
+                  <span className="lp-mono text-xs" style={{ color: "var(--accent)" }}>—</span>
+                  <h3 className="lp-serif italic text-xl">{p.title}</h3>
+                  <p className="lp-row-desc lp-body leading-relaxed max-w-xl" style={{ color: "var(--ink-soft)" }}>
+                    {p.desc}
+                  </p>
+                  <span className="lp-mono text-[10px] uppercase tracking-[0.18em] whitespace-nowrap" style={{ color: "var(--ink-faint)" }}>
+                    {p.meta}
+                  </span>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+
+        {/* Panel jaminan key / BYOG */}
+        <Reveal tilt delay={200}>
+          <div className="max-w-6xl mx-auto mt-16 lp-panel">
+            <div className="lp-panel-inner p-8 sm:p-10">
+              <h3 className="lp-serif text-2xl sm:text-3xl italic mb-4 leading-tight">
+                Cukup satu key. Gratis. Kami pandu sampai jadi.
+              </h3>
+              <p className="lp-body mb-8 max-w-2xl leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                Yang Anda siapkan hanyalah token / key API dari platform yang
+                ingin ditautkan — dibuat lewat developer portal resmi masing-masing,
+                tanpa biaya sepeser pun.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-6">
+                {[
+                  { head: "Panduan langkah demi langkah", body: "Dashboard menyediakan tutorial bergambar lengkap untuk setiap platform — dari membuat akun developer sampai key aktif dan terpasang." },
+                  { head: "Bantuan langsung bila macet", body: "Tiket support dan ADICHAT siap menemani Anda sampai key terpasang. Tidak ada pertanyaan yang terlalu dasar untuk ditanyakan." },
+                  { head: "Layanan ekosistem juga gratis", body: "Bahkan fitur yang menyentuh ekosistem kami — misalnya mengutip artikel ADINEWS — hanya membutuhkan token/key API gratis yang Anda buat sendiri; kami pandu cara mendapatkannya dari awal." },
+                  { head: "Anda pegang kuncinya", body: "Key disimpan terenkripsi hanya di server Anda. Tim kami tidak memiliki akses — hanya engine di akun Anda yang membaca dan memakainya." },
+                ].map((b, i) => (
+                  <div key={i} className="border-t pt-4 lp-hairline">
+                    <p className="lp-kicker mb-1">{b.head}</p>
+                    <p className="lp-body text-sm leading-relaxed" style={{ color: "var(--ink-soft)" }}>{b.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
       </section>
 
       {/* CARA KERJA */}
@@ -421,39 +745,49 @@ export default function LandingPage() {
             { num: "01", title: "Hubungkan akun", desc: "OAuth sekali klik. Token disimpan terenkripsi end-to-end." },
             { num: "02", title: "Atur strategi", desc: "Pilih niche, gaya bahasa, dan frekuensi siar harian." },
             { num: "03", title: "Biarkan berjalan", desc: "Engine posting dan engaged 24/7; Anda cukup memantau." },
-          ].map((step) => (
-            <div key={step.num}>
-              <div className="lp-mono text-sm mb-3" style={{ color: "var(--accent)" }}>{step.num}</div>
-              <h3 className="lp-serif italic text-2xl mb-2">{step.title}</h3>
-              <p className="lp-body text-sm leading-relaxed" style={{ color: "var(--ink-soft)" }}>{step.desc}</p>
-            </div>
+          ].map((step, i) => (
+            <Reveal key={step.num} delay={i * 130}>
+              <div>
+                <div className="lp-mono text-sm mb-3" style={{ color: "var(--accent)" }}>{step.num}</div>
+                <h3 className="lp-serif italic text-2xl mb-2">{step.title}</h3>
+                <p className="lp-body text-sm leading-relaxed" style={{ color: "var(--ink-soft)" }}>{step.desc}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
       {/* CTA: blok tinta inversi */}
       <section className="px-6 pb-24">
-        <div className="max-w-4xl mx-auto text-center px-8 py-16" style={{ background: "var(--ink)", color: "var(--paper)" }}>
-          <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight">
-            Akun yang jarang post, jarang diingat.
-          </h2>
-          <p className="lp-body mt-4" style={{ color: "#b9b19e" }}>
-            Gratis 10x posting dan 10x komentar setiap hari. Tanpa kartu kredit,
-            setup dua menit.
-          </p>
-          <div className="mt-8">
-            <button
-              onClick={() => {
-                if (currentUser) window.location.href = "/dashboard";
-                else { setAuthTab("register"); setShowAuthModal(true); }
-              }}
-              className="lp-btn"
-              style={{ background: "var(--paper)", color: "var(--ink)", borderColor: "var(--paper)" }}
-            >
-              Mulai sekarang — gratis
-            </button>
+        <Reveal tilt>
+          <div className="max-w-4xl mx-auto text-center px-8 py-16" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+            <h2 className="lp-serif text-3xl sm:text-4xl font-medium tracking-tight">
+              Akun yang jarang post, jarang diingat.
+            </h2>
+            <p className="lp-body mt-4" style={{ color: "#b9b19e" }}>
+              Gratis 10x posting dan 10x komentar setiap hari. Tanpa kartu kredit,
+              setup dua menit.
+            </p>
+            <div className="mt-8">
+              <button
+                onClick={() => {
+                  if (currentUser) window.location.href = "/dashboard";
+                  else { setAuthTab("register"); setShowAuthModal(true); }
+                }}
+                className="lp-btn"
+                style={{ background: "var(--paper)", color: "var(--ink)", borderColor: "var(--paper)" }}
+              >
+                <span>
+                  Mulai sekarang — gratis
+                  <span className="btn-arrow">→</span>
+                </span>
+              </button>
+            </div>
+            <p className="lp-mono text-[11px] mt-8 tracking-wide uppercase" style={{ color: "#897e6c" }}>
+              Kuota harian ketat · Token terenkripsi · TOS Guard aktif · Tidak ada kartu kredit
+            </p>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* COLOPHON */}
@@ -476,26 +810,26 @@ export default function LandingPage() {
       {/* AUTH MODAL */}
       {showAuthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center lp-overlay p-4">
-          <div className="w-full max-w-md relative" style={{ background: "var(--paper-deep)", border: "1px solid var(--ink)", boxShadow: "8px 8px 0 0 rgba(33,29,21,0.25)" }}>
-            <button onClick={() => setShowAuthModal(false)} aria-label="Tutup" className="absolute top-3 right-4 text-xl leading-none cursor-pointer" style={{ color: "var(--ink-faint)" }}>
+          <div className="w-full max-w-md relative" style={{ background: "var(--paper-deep)", border: "1px solid var(--ink)", boxShadow: "8px 8px 0 0 rgba(33,29,21,0.25)", animation: "lp-rise 420ms cubic-bezier(0.19,1,0.22,1)" }}>
+            <button onClick={() => setShowAuthModal(false)} aria-label="Tutup" className="absolute top-3 right-4 text-xl leading-none cursor-pointer bg-transparent border-none" style={{ color: "var(--ink-faint)" }}>
               ×
             </button>
             <div className="m-1.5 p-7 space-y-6" style={{ border: "1px solid var(--line)" }}>
               <div className="flex gap-6 border-b lp-hairline pb-3">
-                <button onClick={() => setAuthTab("register")} className={`lp-body italic text-base cursor-pointer ${authTab === "register" ? "" : ""}`} style={authTab === "register" ? { color: "var(--accent)", textDecoration: "underline", textDecorationColor: "var(--accent)", textUnderlineOffset: 5 } : { color: "var(--ink-faint)" }}>
+                <button onClick={() => setAuthTab("register")} className="lp-body italic text-base cursor-pointer bg-transparent border-none p-0" style={authTab === "register" ? { color: "var(--accent)", textDecoration: "underline", textDecorationColor: "var(--accent)", textUnderlineOffset: 5 } : { color: "var(--ink-faint)" }}>
                   Daftar baru
                 </button>
-                <button onClick={() => setAuthTab("login")} className="lp-body italic text-base cursor-pointer" style={authTab === "login" ? { color: "var(--accent)", textDecoration: "underline", textDecorationColor: "var(--accent)", textUnderlineOffset: 5 } : { color: "var(--ink-faint)" }}>
+                <button onClick={() => setAuthTab("login")} className="lp-body italic text-base cursor-pointer bg-transparent border-none p-0" style={authTab === "login" ? { color: "var(--accent)", textDecoration: "underline", textDecorationColor: "var(--accent)", textUnderlineOffset: 5 } : { color: "var(--ink-faint)" }}>
                   Masuk sesi
                 </button>
               </div>
 
               <div className="space-y-2.5">
                 <button onClick={() => triggerOAuth("google")} className="lp-btn lp-btn-ghost lp-btn-plain w-full cursor-pointer">
-                  Lanjutkan dengan Google
+                  <span>Lanjutkan dengan Google</span>
                 </button>
                 <button onClick={() => triggerOAuth("github")} className="lp-btn lp-btn-ghost lp-btn-plain w-full cursor-pointer">
-                  Lanjutkan dengan GitHub
+                  <span>Lanjutkan dengan GitHub</span>
                 </button>
               </div>
 
@@ -529,7 +863,7 @@ export default function LandingPage() {
                 </div>
 
                 <button type="submit" className="lp-btn w-full justify-center">
-                  {authTab === "register" ? "Daftar akun gratis (10x/hari)" : "Masuk ke dashboard"}
+                  <span>{authTab === "register" ? "Daftar akun gratis (10x/hari)" : "Masuk ke dashboard"}</span>
                 </button>
               </form>
             </div>

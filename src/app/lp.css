@@ -74,6 +74,8 @@
 }
 
 .lp-btn {
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -85,11 +87,33 @@
   text-transform: uppercase;
   border: 1px solid var(--ink);
   cursor: pointer;
-  transition: background 150ms ease, transform 100ms ease;
+  transition: transform 100ms ease;
 }
-.lp-btn:hover {
+/* Sapuan blok aksen saat hover */
+.lp-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: var(--accent-ink);
-  border-color: var(--accent-ink);
+  transform: translateX(-101%);
+  transition: transform 380ms cubic-bezier(0.77, 0, 0.175, 1);
+}
+.lp-btn:hover::after {
+  transform: translateX(0);
+}
+.lp-btn > span {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.lp-btn .btn-arrow {
+  display: inline-block;
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lp-btn:hover .btn-arrow {
+  transform: translateX(5px);
 }
 .lp-btn:active {
   transform: translateY(1px);
@@ -99,8 +123,10 @@
   color: var(--ink);
   border: 1px solid var(--ink);
 }
-.lp-btn-ghost:hover {
+.lp-btn-ghost::after {
   background: var(--ink);
+}
+.lp-btn-ghost:hover {
   color: var(--paper);
 }
 .lp-btn-plain {
@@ -113,6 +139,27 @@
 .lp-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* Nav: garis bawah menyusir dari kiri */
+.lp-navlink {
+  position: relative;
+}
+.lp-navlink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 320ms cubic-bezier(0.65, 0.05, 0.36, 1);
+}
+.lp-navlink:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 /* Titik-titik pengisi ala daftar isi buku */
@@ -242,9 +289,130 @@
   outline-offset: 3px;
 }
 
+/* ══ Transisi & gerak ══════════════════════════════════════════ */
+
+/* Reveal saat scroll: muncul + naik */
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 700ms ease,
+    transform 700ms cubic-bezier(0.19, 1, 0.22, 1);
+}
+.lp-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Headline: tiap baris naik dari balik topeng */
+.lp-mask {
+  display: block;
+  overflow: hidden;
+}
+.lp-mask > span {
+  display: block;
+  transform: translateY(112%);
+  animation: lp-rise 950ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+.lp-mask + .lp-mask > span {
+  animation-delay: 130ms;
+}
+@keyframes lp-rise {
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Kicker: garis kecil mengembang */
+.lp-rule-grow {
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 900ms cubic-bezier(0.19, 1, 0.22, 1) 150ms;
+}
+.is-in .lp-rule-grow,
+.lp-reveal.is-in .lp-rule-grow {
+  transform: scaleX(1);
+}
+
+/* Panel kertas masuk dengan kemiringan kecil */
+.lp-tilt {
+  opacity: 0;
+  transform: translateY(26px) rotate(-1.4deg);
+  transition:
+    opacity 800ms ease,
+    transform 800ms cubic-bezier(0.19, 1, 0.22, 1);
+}
+.lp-tilt.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Kliping feed pop halus */
+.lp-clip {
+  transition:
+    border-color 300ms ease,
+    opacity 300ms ease,
+    box-shadow 300ms ease,
+    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lp-clip-active {
+  border-color: var(--ink);
+  box-shadow: 4px 4px 0 0 rgba(166, 67, 28, 0.25);
+  transform: translate(-2px, -2px);
+}
+
+/* Caret mengetik sandbox */
+.lp-caret {
+  display: inline-block;
+  width: 8px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--accent);
+  animation: lp-blink 850ms steps(1) infinite;
+}
+@keyframes lp-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Log langkah sandbox */
+.lp-logline {
+  animation: lp-slide 240ms ease;
+}
+
+/* Baris tujuan konten terpilih */
+.lp-goal {
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    padding-left 200ms cubic-bezier(0.19, 1, 0.22, 1);
+  border-left: 3px solid transparent;
+}
+.lp-goal:hover {
+  background: rgba(166, 67, 28, 0.05);
+}
+.lp-goal-on {
+  border-left-color: var(--accent);
+  background: rgba(166, 67, 28, 0.07);
+  padding-left: 14px !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lp-root * {
     transition: none !important;
     animation: none !important;
+  }
+  .lp-reveal,
+  .lp-tilt {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .lp-mask > span {
+    transform: none !important;
   }
 }
