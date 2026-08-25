@@ -60,6 +60,8 @@ const liveStats = [
   { label: "Uptime engine", value: 99.97, suffix: "%" },
 ];
 
+const demoTimes = ["06:12", "08:47", "11:03", "13:26", "16:58", "19:41"];
+
 type Toast = { id: number; text: string; type: "success" | "info" | "warn" };
 
 export default function LandingPage() {
@@ -70,7 +72,6 @@ export default function LandingPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [mounted, setMounted] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
   const [demoRunning, setDemoRunning] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -83,7 +84,6 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    setMounted(true);
     const token = localStorage.getItem("adi_saas_token");
     if (token) {
       fetch(`/api/v1/threads/user/quota?token=${token}`)
@@ -101,12 +101,11 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
     const interval = setInterval(() => {
       setLiveCounter((c) => c + Math.floor(Math.random() * 3));
     }, 3000);
     return () => clearInterval(interval);
-  }, [mounted]);
+  }, []);
 
   const runDemo = useCallback(() => {
     setDemoRunning(true);
@@ -169,8 +168,6 @@ export default function LandingPage() {
       alert("Gagal menghubungi server auth");
     }
   };
-
-  if (!mounted) return null;
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white overflow-x-hidden selection:bg-emerald-500/30">
@@ -402,7 +399,7 @@ export default function LandingPage() {
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <i className="fa-brands fa-threads text-zinc-500 text-xs"></i>
-                        <span className="text-[10px] font-mono text-zinc-600">@adi_agent • {new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
+                        <span className="text-[10px] font-mono text-zinc-600">@adi_agent • {demoTimes[i]} WIB</span>
                         {isActive && <span className="ml-auto text-[9px] font-bold text-cyan-400 animate-pulse">SENDING...</span>}
                         {isDone && <span className="ml-auto text-[9px] font-bold text-emerald-400">SENT</span>}
                       </div>
